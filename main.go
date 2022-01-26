@@ -28,10 +28,10 @@ func main() {
 		flag.Usage()
 	}
 	if dir != "" && file != "" {
-		panic("Pick dir or file, not both")
+		log.Fatalln("Pick dir or file, not both")
 	}
 	if err := format(dir, file, recursive, verbose); err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 }
 
