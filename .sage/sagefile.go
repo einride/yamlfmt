@@ -11,7 +11,6 @@ import (
 	"go.einride.tech/sage/tools/sggolangcilint"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmarkdownfmt"
-	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
 func main() {
@@ -31,7 +30,7 @@ func All(ctx context.Context) error {
 
 func FormatYAML(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
-	return sgyamlfmt.FormatYAML(ctx)
+	return sg.Command(ctx, "go", "run", ".", "-dir", ".", "-r").Run()
 }
 
 func GoModTidy(ctx context.Context) error {
