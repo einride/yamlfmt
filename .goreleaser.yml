@@ -16,3 +16,5 @@ checksum:
   name_template: "checksums.txt"
 
 release:
+changelog:
+  skip: true
