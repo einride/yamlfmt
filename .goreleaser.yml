@@ -1,7 +1,3 @@
-before:
-  hooks:
-    - git fetch --tags
-
 builds:
   - id: yamlfmt
     main: ./main.go
