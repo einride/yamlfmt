@@ -30,7 +30,7 @@ func All(ctx context.Context) error {
 
 func FormatYAML(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
-	return sg.Command(ctx, "go", "run", ".", "-dir", ".", "-r").Run()
+	return sg.Command(ctx, "go", "run", ".", "-d", ".", "-r").Run()
 }
 
 func GoModTidy(ctx context.Context) error {
