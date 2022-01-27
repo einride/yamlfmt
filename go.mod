@@ -1,4 +1,4 @@
-module github.com/einride/yamlfmt
+module go.einride.tech/yamlfmt
 
 go 1.17
 

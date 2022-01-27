@@ -3,7 +3,7 @@ before:
     - go mod download
 
 builds:
-  - id: yamlfmt 
+  - id: yamlfmt
     binary: yamlfmt
     main: ./main.go
     env:
