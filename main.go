@@ -37,16 +37,13 @@ func main() {
 
 func format(dir, file string, indent int, recursive, verbose bool) error {
 	formatFile := func(path string) error {
-		if verbose {
-			log.Printf("Formatting %s", path)
-		}
-		node := yaml.Node{}
+		var node yaml.Node
 		yamlFile, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		yamlFile = preserveEmptyLines(yamlFile)
-		if err := yaml.Unmarshal(yamlFile, &node); err != nil {
+		commentedFile := preserveEmptyLines(yamlFile)
+		if err := yaml.Unmarshal(commentedFile, &node); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
 		var b bytes.Buffer
@@ -55,7 +52,13 @@ func format(dir, file string, indent int, recursive, verbose bool) error {
 		if err := encoder.Encode(&node); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
-		return os.WriteFile(path, cleanupPreserveEmptyLines(b.Bytes()), 0o600)
+		if equal := bytes.Compare(yamlFile, cleanupPreserveEmptyLines(b.Bytes())); equal != 0 {
+			if verbose {
+				log.Printf("Formatted %s", path)
+			}
+			return os.WriteFile(path, cleanupPreserveEmptyLines(b.Bytes()), 0o600)
+		}
+		return nil
 	}
 
 	if file != "" {
