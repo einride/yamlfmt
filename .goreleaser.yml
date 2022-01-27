@@ -1,10 +1,9 @@
 before:
   hooks:
-    - go mod download
+    - go mod tidy
 
 builds:
   - id: yamlfmt
-    binary: yamlfmt
     main: ./main.go
     env:
       - CGO_ENABLED=0
@@ -16,9 +15,4 @@ builds:
 checksum:
   name_template: "checksums.txt"
 
-snapshot:
-  name_template: "{{ .Tag }}-next"
-
 release:
-  github:
-  prerelease: auto
