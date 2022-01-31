@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -72,7 +73,7 @@ func format(dir, file string, indent int, recursive, verbose bool) error {
 					return err
 				}
 			} else {
-				if filepath.Dir(path) == dir {
+				if filepath.Dir(path) == filepath.Clean(dir) {
 					if err := formatFile(path); err != nil {
 						return err
 					}
@@ -86,17 +87,55 @@ func format(dir, file string, indent int, recursive, verbose bool) error {
 // preserveEmptyLines adds a temporary #comment on each empty line in the provided byte array.
 // cleanupPreserveEmptyLines can be used to clean up the temporary comments.
 func preserveEmptyLines(src []byte) []byte {
-	return bytes.ReplaceAll(src, []byte("\n\n"), []byte("\n#preserveEmptyLine\n"))
+	var b []byte
+	in := bufio.NewScanner(bytes.NewReader(src))
+	for in.Scan() {
+		line := in.Bytes()
+		if len(bytes.TrimSpace(line)) == 0 {
+			b = append(b, []byte("#preserveEmptyLine\n")...)
+		} else {
+			b = append(b, append(line, "\n"...)...)
+		}
+	}
+	return b
 }
 
 // cleanupPreserveEmptyLines cleans up the temporary #comment added by PreserveEmptyLines.
 func cleanupPreserveEmptyLines(src []byte) []byte {
-	// Remove temporary comment.
-	indentPreserveComment := regexp.MustCompile("\n\\s+#preserveEmptyLine\n")
-	src = indentPreserveComment.ReplaceAll(src, []byte("\n\n"))
-	src = bytes.ReplaceAll(src, []byte("\n#preserveEmptyLine\n"), []byte("\n\n"))
+	// Scrub one time to preserve multi line strings
+	var first []byte
+	in := bufio.NewScanner(bytes.NewReader(src))
+	for in.Scan() {
+		line := in.Text()
+		if strings.TrimSpace(line) == "#preserveEmptyLine" {
+			first = append(first, []byte("\n")...)
+			continue
+		}
+		if strings.Contains(line, "#preserveEmptyLine") {
+			line = strings.ReplaceAll(line, "#preserveEmptyLine", "\n#preserveEmptyLine")
+			first = append(first, []byte(line+"\n")...)
+			continue
+		}
+		first = append(first, []byte(line+"\n")...)
+	}
+	// Scrub a second time to remove the rest
+	var second []byte
+	in = bufio.NewScanner(bytes.NewReader(first))
+	for in.Scan() {
+		line := in.Text()
+		if strings.TrimSpace(line) == "#preserveEmptyLine" {
+			second = append(second, []byte("\n")...)
+			continue
+		}
+		if strings.Contains(line, "#preserveEmptyLine") {
+			line = strings.ReplaceAll(line, "#preserveEmptyLine", "\n")
+			second = append(second, []byte(line+"\n")...)
+			continue
+		}
+		second = append(second, []byte(line+"\n")...)
+	}
 	// Remove trailing empty lines
-	src = bytes.TrimSpace(src)
-	src = append(src, []byte("\n")...)
-	return src
+	second = bytes.TrimSpace(second)
+	second = append(second, []byte("\n")...)
+	return second
 }
