@@ -31,6 +31,9 @@ func main() {
 	if dir != "" && file != "" {
 		log.Fatalln("Pick dir or file, not both")
 	}
+	if dir == "" && file == "" {
+		dir, _ = os.Getwd()
+	}
 	if err := format(dir, file, indent, recursive, verbose); err != nil {
 		log.Fatalln(err)
 	}
@@ -67,6 +70,12 @@ func format(dir, file string, indent int, recursive, verbose bool) error {
 	}
 
 	return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
 		if filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".yaml" {
 			if recursive {
 				if err := formatFile(path); err != nil {
